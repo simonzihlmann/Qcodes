@@ -28,7 +28,7 @@ class FSW(VisaInstrument):
     - check initialisation settings and test functions
     """
 
-    def __init__(self, name: str, address: str, init_s_params: bool=True, **kwargs):
+    def __init__(self, name: str, address: str, **kwargs):
 
         super().__init__(name=name, address=address, **kwargs)
 
