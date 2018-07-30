@@ -187,21 +187,13 @@ class SP927(VisaInstrument, SP927Reader):
         for chan in self.channels:
             chan.volt.set(volt)
 
-    def __repr__(self):
-        """Simplified repr giving just the class and name."""
-        return '<{}: {}>'.format(type(self).__name__, self.name)
-
-#    def get_idn(self):
-#        IDN = self.ask_raw('SOFT?')
-#        vendor, model, serial, firmware = map(str.strip, IDN.split(','))
-#        model = model[6:]
-#
-#        IDN = {'vendor': 'UniBasel', 'model': 'SP927',
-#               'serial': '-----', 'firmware': '-----'}
-#        return IDN
-    
     def write(self, cmd):
         """
         Since there is always a return code from the instrument, we use ask instead of write
         """
         return self.ask(cmd)
+    
+    def get_idn(self):
+       
+        return dict(zip(('vendor', 'model', 'serial', 'firmware'), 
+                        ('UniBasel', 'SP927', 'n.a.', 'n.a.')))
