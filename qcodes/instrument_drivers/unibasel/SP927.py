@@ -161,7 +161,12 @@ class SP927(VisaInstrument, SP927Reader):
         channels.lock()
         self.add_submodule('channels', channels)
 
-
+        # set small ramp speed for all channels (safety)
+        
+        for chan in self.channels:
+            chan.volt.inter_delay=0.001
+            chan.volt.step=0.001
+            
         self.connect_message()
 
     def _set_voltage(self, chan, code):
