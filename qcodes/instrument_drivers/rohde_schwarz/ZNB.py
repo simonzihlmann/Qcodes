@@ -176,6 +176,10 @@ class ZNBChannel(InstrumentChannel):
                            set_cmd=self._set_center,
                            get_parser=float,
                            vals=vals.Numbers(self._parent._min_freq + 0.5, self._parent._max_freq - 10))
+        self.add_parameter(name='cw',
+                           get_cmd='SENS{}:FREQ:CW?'.format(n),
+                           set_cmd=self._set_CW,
+                           get_parser=float)
         self.add_parameter(name='span',
                            get_cmd='SENS{}:FREQ:SPAN?'.format(n),
                            set_cmd=self._set_span,
@@ -300,6 +304,11 @@ class ZNBChannel(InstrumentChannel):
         self.write('SENS{}:FREQ:CENT {:.7f}'.format(channel, val))
         self._update_traces()
 
+    def _set_CW(self, val):
+        channel = self._instrument_channel
+        self.write('SENS{}:FREQ:CW {:.7f}'.format(channel, val))
+        #self._update_traces()
+        
     def _update_traces(self):
         """ updates start, stop and npts of all trace parameters"""
         start = self.start()
