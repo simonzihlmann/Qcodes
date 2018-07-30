@@ -85,3 +85,6 @@ class YKGW7651(VisaInstrument):
     def connect_message(self):
         print("Yoko 7651 as voltage generator. Switch the instrument to voltage mode!")
         return
+    
+    def reset(self):
+        return
