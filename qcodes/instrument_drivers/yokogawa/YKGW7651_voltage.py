@@ -1,4 +1,5 @@
 from functools import partial
+from qcodes import VisaInstrument
 
 def float_round(val):
     """
