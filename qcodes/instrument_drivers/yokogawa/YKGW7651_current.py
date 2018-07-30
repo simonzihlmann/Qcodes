@@ -1,8 +1,7 @@
 from functools import partial
 from typing import Optional
 
-from qcodes import VisaInstrument, InstrumentChannel
-from qcodes.utils.validators import Numbers, Bool, Enum, Ints
+from qcodes import VisaInstrument
 
 def float_round(val):
     """
@@ -34,7 +33,7 @@ class YKGW7651(VisaInstrument):
 
     def __init__(self, name: str, address: str, terminator: str="\r\n",
                  **kwargs) -> None:
-        super().__init__(name, address, terminator=terminator, **kwargs)
+        super().__init__(name, address, terminator=terminator, device_clear = False, **kwargs)
 
        
         self.add_parameter('output',
