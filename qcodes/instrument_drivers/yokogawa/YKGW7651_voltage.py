@@ -1,8 +1,4 @@
 from functools import partial
-from typing import Optional
-
-from qcodes import VisaInstrument, InstrumentChannel
-from qcodes.utils.validators import Numbers, Bool, Enum, Ints
 
 def float_round(val):
     """
@@ -32,9 +28,9 @@ class YKGW7651(VisaInstrument):
       terminator (str): read terminator for reads/writes to the instrument.
     """
 
-    def __init__(self, name: str, address: str, terminator: str="\r\n",
+    def __init__(self, name: str, address: str, terminator: str="\r\n", 
                  **kwargs) -> None:
-        super().__init__(name, address, terminator=terminator, **kwargs)
+        super().__init__(name, address, terminator=terminator, device_clear = False, **kwargs)
 
        
         self.add_parameter('output',
@@ -88,3 +84,7 @@ class YKGW7651(VisaInstrument):
     
     def reset(self):
         return
+
+    def get_idn(self):
+        return dict(zip(('vendor', 'model', 'serial', 'firmware'), 
+                        ('Yokogawa', 'YKGW7651', 'n.a.', 'n.a.')))
