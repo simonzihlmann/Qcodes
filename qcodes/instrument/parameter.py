@@ -88,7 +88,7 @@ class _SetParamContext:
 
     Example usage:
     >>> v = dac.voltage()
-    >>> with dac.voltage(-1):
+    >>> with dac.voltage.set_to(-1):
         ...     # Do stuff with the DAC output set to -1 V.
         ...
     >>> assert abs(dac.voltage() - v) <= tolerance
@@ -367,11 +367,11 @@ class _BaseParameter(Metadatable):
                 # apply offset first (native scale)
                 if self.offset is not None:
                     # offset values
-                    if isinstance(self.offset, collections.Iterable):
+                    if isinstance(self.offset, collections.abc.Iterable):
                         # offset contains multiple elements, one for each value
                         value = tuple(value - offset for value, offset
                                       in zip(value, self.offset))
-                    elif isinstance(value, collections.Iterable):
+                    elif isinstance(value, collections.abc.Iterable):
                         # Use single offset for all values
                         value = tuple(value - self.offset for value in value)
                     else:
@@ -380,11 +380,11 @@ class _BaseParameter(Metadatable):
                 # scale second
                 if self.scale is not None:
                     # Scale values
-                    if isinstance(self.scale, collections.Iterable):
+                    if isinstance(self.scale, collections.abc.Iterable):
                         # Scale contains multiple elements, one for each value
                         value = tuple(value / scale for value, scale
                                       in zip(value, self.scale))
-                    elif isinstance(value, collections.Iterable):
+                    elif isinstance(value, collections.abc.Iterable):
                         # Use single scale for all values
                         value = tuple(value / self.scale for value in value)
                     else:
@@ -431,7 +431,7 @@ class _BaseParameter(Metadatable):
                     # getter:
                     # apply scale first
                     if self.scale is not None:
-                        if isinstance(self.scale, collections.Iterable):
+                        if isinstance(self.scale, collections.abc.Iterable):
                             # Scale contains multiple elements, one for each value
                             raw_value = tuple(val * scale for val, scale
                                               in zip(raw_value, self.scale))
@@ -441,7 +441,7 @@ class _BaseParameter(Metadatable):
 
                     # apply offset next
                     if self.offset is not None:
-                        if isinstance(self.offset, collections.Iterable):
+                        if isinstance(self.offset, collections.abc.Iterable):
                             # offset contains multiple elements, one for each value
                             raw_value = tuple(val + offset for val, offset
                                               in zip(raw_value, self.offset))
@@ -501,7 +501,7 @@ class _BaseParameter(Metadatable):
         if step is None:
             return [value]
         else:
-            if isinstance(value, collections.Sized) and len(value) > 1:
+            if isinstance(value, collections.abc.Sized) and len(value) > 1:
                 raise RuntimeError("Don't know how to step a parameter with more than one value")
             if self.get_latest() is None:
                 self.get()
@@ -661,7 +661,6 @@ class _BaseParameter(Metadatable):
                 'inter_delay ({}) must not be negative'.format(inter_delay))
         self._inter_delay = inter_delay
 
-    # Deprecated
     @property
     def full_name(self):
         return "_".join(self.name_parts)
@@ -721,7 +720,14 @@ class _BaseParameter(Metadatable):
     @property
     def name_parts(self) -> List[str]:
         if self.instrument is not None:
-            name_parts = self.instrument.name_parts
+            name_parts = getattr(self.instrument, 'name_parts', [])
+            if name_parts == []:
+                # add fallback for the case where someone has bound
+                # the parameter to something that is not an instrument
+                # but perhaps it has a name anyway?
+                name = getattr(self.instrument, 'name', None)
+                if name is not None:
+                    name_parts = [name]
         else:
             name_parts = []
 
@@ -1046,8 +1052,8 @@ class ArrayParameter(_BaseParameter):
         # require one setpoint per dimension of shape
         sp_shape = (len(shape),)
 
-        sp_types = (nt, DataArray, collections.Sequence,
-                    collections.Iterator, numpy.ndarray)
+        sp_types = (nt, DataArray, collections.abc.Sequence,
+                    collections.abc.Iterator, numpy.ndarray)
         if (setpoints is not None and
                 not is_sequence_of(setpoints, sp_types, shape=sp_shape)):
             raise ValueError('setpoints must be a tuple of arrays')
@@ -1084,6 +1090,27 @@ class ArrayParameter(_BaseParameter):
 
         if not hasattr(self, 'get') and not hasattr(self, 'set'):
             raise AttributeError('ArrayParameter must have a get, set or both')
+
+    @property
+    def setpoint_full_names(self):
+        """
+        Full names of setpoints including instrument names if available
+        """
+        if self.setpoint_names is None:
+            return None
+        # omit the last part of name_parts which is the parameter name
+        # and not part of the setpoint names
+        inst_name = "_".join(self.name_parts[:-1])
+        if inst_name != '':
+            spnames = []
+            for spname in self.setpoint_names:
+                if spname is not None:
+                    spnames.append(inst_name + '_' + spname)
+                else:
+                    spnames.append(None)
+            return tuple(spnames)
+        else:
+            return self.setpoint_names
 
 
 def _is_nested_sequence_or_none(obj, types, shapes):
@@ -1224,8 +1251,8 @@ class MultiParameter(_BaseParameter):
                              'of ints, not ' + repr(shapes))
         self.shapes = shapes
 
-        sp_types = (nt, DataArray, collections.Sequence,
-                    collections.Iterator, numpy.ndarray)
+        sp_types = (nt, DataArray, collections.abc.Sequence,
+                    collections.abc.Iterator, numpy.ndarray)
         if not _is_nested_sequence_or_none(setpoints, sp_types, shapes):
             raise ValueError('setpoints must be a tuple of tuples of arrays')
 
@@ -1264,16 +1291,49 @@ class MultiParameter(_BaseParameter):
             raise AttributeError('MultiParameter must have a get, set or both')
 
     @property
-    def full_names(self):
-        """Include the instrument name with the Parameter names if possible."""
-        try:
-            inst_name = self._instrument.name
-            if inst_name:
-                return [inst_name + '_' + name for name in self.names]
-        except AttributeError:
-            pass
+    def short_names(self):
+        """
+        short_names is indentical to names i.e. the names of the paramter parts
+        but does not add the intrument name.
+
+        It exists for consistency with instruments and other parameters.
+        """
 
         return self.names
+
+    @property
+    def full_names(self):
+        """Include the instrument name with the Parameter names if possible."""
+        inst_name = "_".join(self.name_parts[:-1])
+        if inst_name != '':
+            return [inst_name + '_' + name for name in self.names]
+        else:
+            return self.names
+
+    @property
+    def setpoint_full_names(self):
+        """
+        Full names of setpoints including instrument names if available
+        """
+        if self.setpoint_names is None:
+            return None
+        # omit the last part of name_parts which is the parameter name
+        # and not part of the setpoint names
+        inst_name = "_".join(self.name_parts[:-1])
+        if inst_name != '':
+            full_sp_names = []
+            for sp_group in self.setpoint_names:
+                full_sp_names_subgroupd = []
+                for spname in sp_group:
+                    if spname is not None:
+                        full_sp_names_subgroupd.append(inst_name + '_' + spname)
+                    else:
+                        full_sp_names_subgroupd.append(None)
+                full_sp_names.append(tuple(full_sp_names_subgroupd))
+
+            return tuple(full_sp_names)
+        else:
+            return self.setpoint_names
 
 
 class GetLatest(DelegateAttributes):
