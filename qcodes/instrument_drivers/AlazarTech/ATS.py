@@ -148,6 +148,7 @@ class AlazarTech_ATS(Instrument):
     }
 
     _board_names = {
+        0: 'ATS_NONE',
         1: 'ATS850',
         2: 'ATS310',
         3: 'ATS330',
@@ -177,7 +178,13 @@ class AlazarTech_ATS(Instrument):
         27: 'ATS9370',
         28: 'ATU7825',
         29: 'ATS9373',
-        30: 'ATS9416'
+        30: 'ATS9416',
+        31: 'ATS9637',
+        32: 'ATS9120',
+        33: 'ATS9371',
+        34: 'ATS9130',
+        35: 'ATS9352',
+        36: 'ATS9453',
     }
 
     @classmethod
@@ -243,7 +250,6 @@ class AlazarTech_ATS(Instrument):
     def __init__(self, name: str, system_id: int=1, board_id: int=1,
                  dll_path: str=None, **kwargs) -> None:
         super().__init__(name, **kwargs)
-        self._ATS_dll = None
 
         if os.name == 'nt':
             self._ATS_dll = ctypes.cdll.LoadLibrary(dll_path or self.dll_path)
@@ -879,7 +885,10 @@ class AlazarTech_ATS(Instrument):
         update_params: List[Parameter] = []
         for arg in args:
             if isinstance(arg, Parameter):
-                args_out.append(arg.raw_value)
+                if arg.raw_value is not None:
+                    args_out.append(arg.raw_value)
+                else:
+                    raise RuntimeError(f"{arg} has value None")
                 update_params.append(arg)
             else:
                 args_out.append(arg)
