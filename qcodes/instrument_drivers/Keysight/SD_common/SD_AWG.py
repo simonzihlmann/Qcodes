@@ -60,43 +60,43 @@ class SD_AWG(SD_Module):
                            docstring='The frequency of the internal CLKsync in Hz')
 
         for i in range(triggers):
-            self.add_parameter('pxi_trigger_number_{}'.format(i),
-                               label='pxi trigger number {}'.format(i),
+            self.add_parameter(f'pxi_trigger_number_{i}',
+                               label=f'pxi trigger number {i}',
                                get_cmd=partial(self.get_pxi_trigger, pxi_trigger=(4000 + i)),
                                set_cmd=partial(self.set_pxi_trigger, pxi_trigger=(4000 + i)),
-                               docstring='The digital value of pxi trigger no. {}, 0 (ON) of 1 (OFF)'.format(i),
+                               docstring=f'The digital value of pxi trigger no. {i}, 0 (ON) of 1 (OFF)',
                                vals=validator.Enum(0, 1))
 
         for i in range(channels):
-            self.add_parameter('frequency_channel_{}'.format(i),
-                               label='frequency channel {}'.format(i),
+            self.add_parameter(f'frequency_channel_{i}',
+                               label=f'frequency channel {i}',
                                unit='Hz',
                                set_cmd=partial(self.set_channel_frequency, channel_number=i),
-                               docstring='The frequency of channel {}'.format(i),
+                               docstring=f'The frequency of channel {i}',
                                vals=validator.Numbers(0, 200e6))
-            self.add_parameter('phase_channel_{}'.format(i),
-                               label='phase channel {}'.format(i),
+            self.add_parameter(f'phase_channel_{i}',
+                               label=f'phase channel {i}',
                                unit='deg',
                                set_cmd=partial(self.set_channel_phase, channel_number=i),
-                               docstring='The phase of channel {}'.format(i),
+                               docstring=f'The phase of channel {i}',
                                vals=validator.Numbers(0, 360))
             # TODO: validate the setting of amplitude and offset at the same time (-1.5<amp+offset<1.5)
-            self.add_parameter('amplitude_channel_{}'.format(i),
-                               label='amplitude channel {}'.format(i),
+            self.add_parameter(f'amplitude_channel_{i}',
+                               label=f'amplitude channel {i}',
                                unit='V',
                                set_cmd=partial(self.set_channel_amplitude, channel_number=i),
-                               docstring='The amplitude of channel {}'.format(i),
+                               docstring=f'The amplitude of channel {i}',
                                vals=validator.Numbers(-1.5, 1.5))
-            self.add_parameter('offset_channel_{}'.format(i),
-                               label='offset channel {}'.format(i),
+            self.add_parameter(f'offset_channel_{i}',
+                               label=f'offset channel {i}',
                                unit='V',
                                set_cmd=partial(self.set_channel_offset, channel_number=i),
-                               docstring='The DC offset of channel {}'.format(i),
+                               docstring=f'The DC offset of channel {i}',
                                vals=validator.Numbers(-1.5, 1.5))
-            self.add_parameter('wave_shape_channel_{}'.format(i),
-                               label='wave shape channel {}'.format(i),
+            self.add_parameter(f'wave_shape_channel_{i}',
+                               label=f'wave shape channel {i}',
                                set_cmd=partial(self.set_channel_wave_shape, channel_number=i),
-                               docstring='The output waveform type of channel {}'.format(i),
+                               docstring=f'The output waveform type of channel {i}',
                                vals=validator.Enum(-1, 0, 1, 2, 4, 5, 6, 8))
 
     #
@@ -108,7 +108,7 @@ class SD_AWG(SD_Module):
         Reads and returns the trigger input
 
         Returns:
-            value (int): Trigger input value, 0 (OFF) or 1 (ON),
+            int: Trigger input value, 0 (OFF) or 1 (ON),
             or negative numbers for errors
         """
         value = self.awg.triggerIOread()
@@ -120,7 +120,7 @@ class SD_AWG(SD_Module):
         Returns the real hardware clock frequency (CLKsys)
 
         Returns:
-            value (int): real hardware clock frequency in Hz,
+            int: real hardware clock frequency in Hz,
             or negative numbers for errors
         """
         value = self.awg.clockGetFrequency()
@@ -132,7 +132,7 @@ class SD_AWG(SD_Module):
         Returns the frequency of the internal CLKsync
 
         Returns:
-            value (int): frequency of the internal CLKsync in Hz,
+            int: frequency of the internal CLKsync in Hz,
             or negative numbers for errors
         """
         value = self.awg.clockGetSyncFrequency()
@@ -151,7 +151,7 @@ class SD_AWG(SD_Module):
             frequency (float): the frequency in Hz
 
         Returns:
-            set_frequency (float): the real frequency applied to the hardware in Hw,
+            float: the real frequency applied to the hardware in Hw,
             or negative numbers for errors
         """
         set_frequency = self.awg.clockSetFrequency(frequency)
@@ -168,7 +168,7 @@ class SD_AWG(SD_Module):
             frequency (int): frequency in Hz
         """
         value = self.awg.channelFrequency(channel_number, frequency)
-        value_name = 'set frequency channel {} to {} Hz'.format(channel_number, frequency)
+        value_name = f'set frequency channel {channel_number} to {frequency} Hz'
         return result_parser(value, value_name, verbose)
 
     def set_channel_phase(self, phase, channel_number, verbose=False):
@@ -180,7 +180,7 @@ class SD_AWG(SD_Module):
             phase (int): phase in degrees
         """
         value = self.awg.channelPhase(channel_number, phase)
-        value_name = 'set phase channel {} to {} degrees'.format(channel_number, phase)
+        value_name = f'set phase channel {channel_number} to {phase} degrees'
         return result_parser(value, value_name, verbose)
 
     def set_channel_amplitude(self, amplitude, channel_number, verbose=False):
@@ -192,7 +192,7 @@ class SD_AWG(SD_Module):
             amplitude (int): amplitude in Volts
         """
         value = self.awg.channelAmplitude(channel_number, amplitude)
-        value_name = 'set amplitude channel {} to {} V'.format(channel_number, amplitude)
+        value_name = f'set amplitude channel {channel_number} to {amplitude} V'
         return result_parser(value, value_name, verbose)
 
     def set_channel_offset(self, offset, channel_number, verbose=False):
@@ -204,7 +204,7 @@ class SD_AWG(SD_Module):
             offset (int): DC offset in Volts
         """
         value = self.awg.channelOffset(channel_number, offset)
-        value_name = 'set offset channel {} to {} V'.format(channel_number, offset)
+        value_name = f'set offset channel {channel_number} to {offset} V'
         return result_parser(value, value_name, verbose)
 
     def set_channel_wave_shape(self, wave_shape, channel_number, verbose=False):
@@ -224,7 +224,7 @@ class SD_AWG(SD_Module):
             wave_shape (int): wave shape type
         """
         value = self.awg.channelWaveShape(channel_number, wave_shape)
-        value_name = 'set wave shape channel {} to {}'.format(channel_number, wave_shape)
+        value_name = f'set wave shape channel {channel_number} to {wave_shape}'
         return result_parser(value, value_name, verbose)
 
     def set_trigger_io(self, value, verbose=False):
@@ -236,7 +236,7 @@ class SD_AWG(SD_Module):
             value (int): Tigger output value: 0 (OFF), 1 (ON)
         """
         result = self.awg.triggerIOwrite(value)
-        value_name = 'set io trigger output to {}'.format(value)
+        value_name = f'set io trigger output to {value}'
         return result_parser(result, value_name, verbose)
 
     #
@@ -274,7 +274,7 @@ class SD_AWG(SD_Module):
                 External I/O Trigger    :   0
                 PXI Trigger [0..n]      :   4000+n
 
-            skew (double) : the skew between PXI_CLK10 and CLKsync in multiples of 10ns
+            skew (float) : the skew between PXI_CLK10 and CLKsync in multiples of 10ns
         """
         value = self.awg.clockResetPhase(trigger_behaviour, trigger_source, skew)
         value_name = 'reset_clock_phase trigger_behaviour: {}, trigger_source: {}, skew: {}'.format(
@@ -290,7 +290,7 @@ class SD_AWG(SD_Module):
             channel_number (int): the number of the channel to reset
         """
         value = self.awg.channelPhaseReset(channel_number)
-        value_name = 'reset phase of channel {}'.format(channel_number)
+        value_name = f'reset phase of channel {channel_number}'
         return result_parser(value, value_name, verbose)
 
     def reset_multiple_channel_phase(self, channel_mask, verbose=False):
@@ -304,7 +304,7 @@ class SD_AWG(SD_Module):
             reset_multiple_channel_phase(5) would reset the phase of channel 0 and 2
         """
         value = self.awg.channelPhaseResetMultiple(channel_mask)
-        value_name = 'reset phase with channel mask {}'.format(channel_mask)
+        value_name = f'reset phase with channel mask {channel_mask}'
         return result_parser(value, value_name, verbose)
 
     def config_angle_modulation(self, channel_number, modulation_type, deviation_gain, verbose=False):
@@ -351,7 +351,7 @@ class SD_AWG(SD_Module):
         """
         value = self.awg.modulationIQconfig(channel_number, enable)
         status = 'Enabled (1)' if enable == 1 else 'Disabled (0)'
-        value_name = 'set IQ modulation for channel {} to {}'.format(channel_number, status)
+        value_name = f'set IQ modulation for channel {channel_number} to {status}'
         return result_parser(value, value_name, verbose)
 
     def config_clock_io(self, clock_config, verbose=False):
@@ -365,7 +365,7 @@ class SD_AWG(SD_Module):
         """
         value = self.awg.clockIOconfig(clock_config)
         status = 'CLKref Output (1)' if clock_config == 1 else 'Disabled (0)'
-        value_name = 'configure clock output connector to {}'.format(status)
+        value_name = f'configure clock output connector to {status}'
         return result_parser(value, value_name, verbose)
 
     def config_trigger_io(self, direction, sync_mode, verbose=False):
@@ -380,7 +380,7 @@ class SD_AWG(SD_Module):
         """
         value = self.awg.triggerIOconfig(direction, sync_mode)
         status = 'input (1)' if direction == 1 else 'output (0)'
-        value_name = 'configure trigger io port to direction: {}, sync_mode: {}'.format(status, sync_mode)
+        value_name = f'configure trigger io port to direction: {status}, sync_mode: {sync_mode}'
         return result_parser(value, value_name, verbose)
 
     #
@@ -398,7 +398,7 @@ class SD_AWG(SD_Module):
                 in subsequent related function calls.
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.waveformLoad(waveform_object, waveform_number)
@@ -417,7 +417,7 @@ class SD_AWG(SD_Module):
                 in subsequent related function calls.
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.waveformLoadInt16(waveform_type, data_raw, waveform_number)
@@ -443,7 +443,7 @@ class SD_AWG(SD_Module):
                     AWG. (only works for waveforms with even number of points)
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.waveformReLoad(waveform_object, waveform_number, padding_mode)
@@ -470,7 +470,7 @@ class SD_AWG(SD_Module):
                     AWG. (only works for waveforms with even number of points)
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.waveformReLoadArrayInt16(waveform_type, data_raw, waveform_number, padding_mode)
@@ -513,7 +513,7 @@ class SD_AWG(SD_Module):
             prescaler (int): waveform prescaler value, to reduce eff. sampling rate
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.AWGFromFile(awg_number, waveform_file, trigger_mode, start_delay, cycles, prescaler,
@@ -548,7 +548,7 @@ class SD_AWG(SD_Module):
                                         which have a second component
 
         Returns:
-            availableRAM (int): available onboard RAM in waveform points,
+            int: available onboard RAM in waveform points,
             or negative numbers for errors
         """
         value = self.awg.AWGfromArray(awg_number, trigger_mode, start_delay, cycles, prescaler,
@@ -710,8 +710,8 @@ class SD_AWG(SD_Module):
             waveform_file (str): file containing the waveform points
 
         Returns:
-            waveform (SD_Wave): pointer to the waveform object,
-            or negative numbers for errors
+            SD_Wave: pointer to the waveform object, or negative numbers
+            for errors
         """
         wave = keysightSD1.SD_Wave()
         result = wave.newFromFile(waveform_file)
@@ -731,8 +731,8 @@ class SD_AWG(SD_Module):
                                      only for the waveforms which have a second component
 
         Returns:
-            waveform (SD_Wave): pointer to the waveform object,
-            or negative numbers for errors
+            SD_Wave: pointer to the waveform object, or negative numbers for
+            errors
         """
         wave = keysightSD1.SD_Wave()
         result = wave.newFromArrayDouble(waveform_type, waveform_data_a, waveform_data_b)
@@ -752,8 +752,8 @@ class SD_AWG(SD_Module):
                                      only for the waveforms which have a second component
 
         Returns:
-            waveform (SD_Wave): pointer to the waveform object,
-            or negative numbers for errors
+            SD_Wave: pointer to the waveform object, or negative numbers
+            for errors
         """
         wave = keysightSD1.SD_Wave()
         result = wave.newFromArrayInteger(waveform_type, waveform_data_a, waveform_data_b)

@@ -1,23 +1,26 @@
+from typing import Any
+
 from numpy import pi
 
 from qcodes import VisaInstrument, validators as vals
+from qcodes.utils.validators import numbertypes
+from qcodes.utils.helpers import create_on_off_val_mapping
 
 
 class Agilent_E8527D(VisaInstrument):
-    '''
-    This is the qcodes driver for the Agilent_E8527D signal generator
-
-    Status: beta-version.
-        TODO:
-        - Add all parameters that are in the manual
+    """
+    This is the QCoDeS driver for the Agilent_E8527D signal generator.
 
     This driver will most likely work for multiple Agilent sources.
 
     This driver does not contain all commands available for the E8527D but
     only the ones most commonly used.
-    '''
-    def __init__(self, name, address, step_attenuator=False, **kwargs):
-        super().__init__(name, address, **kwargs)
+    """
+    def __init__(self, name: str, address: str,
+                 step_attenuator: bool = False,
+                 terminator: str = '\n',
+                 **kwargs: Any) -> None:
+        super().__init__(name, address, terminator=terminator, **kwargs)
 
         self.add_parameter(name='frequency',
                            label='Frequency',
@@ -47,33 +50,25 @@ class Agilent_E8527D(VisaInstrument):
         self.add_parameter('status',
                            get_cmd=':OUTP?',
                            set_cmd='OUTP {}',
-                           get_parser=self.parse_on_off,
-                           # Only listed most common spellings idealy want a
-                           # .upper val for Enum or string
-                           vals=vals.Enum('on', 'On', 'ON',
-                                          'off', 'Off', 'OFF'))
+                           val_mapping=create_on_off_val_mapping(on_val='1',
+                                                                 off_val='0'))
 
         self.connect_message()
 
-    # Note it would be useful to have functions like this in some module instad
-    # of repeated in every instrument driver
-    def rad_to_deg(self, angle_rad):
+    # Note it would be useful to have functions like this in some module instead
+    # of repeated in every instrument driver.
+    @staticmethod
+    def rad_to_deg(angle_rad: numbertypes) -> float:
         angle_deg = float(angle_rad)/(2*pi)*360
         return angle_deg
 
-    def deg_to_rad(self, angle_deg):
+    @staticmethod
+    def deg_to_rad(angle_deg: numbertypes) -> float:
         angle_rad = float(angle_deg)/360 * 2 * pi
         return angle_rad
 
-    def parse_on_off(self, stat):
-        if stat.startswith('0'):
-            stat = 'Off'
-        elif stat.startswith('1'):
-            stat = 'On'
-        return stat
-
-    def on(self):
+    def on(self) -> None:
         self.set('status', 'on')
 
-    def off(self):
+    def off(self) -> None:
         self.set('status', 'off')

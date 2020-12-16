@@ -14,6 +14,16 @@ Basic examples
     *
 
 
+Parameters
+---------------
+
+.. include:: Parameters/readme.txt
+
+.. toctree::
+    :glob:
+
+    Parameters/*
+
 DataSet
 -------
 
@@ -22,6 +32,7 @@ DataSet
 
     DataSet/*
     DataSet/Real_instruments/*
+    DataSet/Cache/*
 
 Plotting
 --------
@@ -39,6 +50,16 @@ Drivers
     :glob:
 
     driver_examples/*
+
+Writing Drivers
+---------------
+
+.. include:: writing_drivers/readme.txt
+
+.. toctree::
+    :glob:
+
+    writing_drivers/*
 
 Logging
 --------
